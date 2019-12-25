@@ -130,6 +130,15 @@ def route_cc(route):
     return start, ''.join(cc)
 
 
+def read_passengers(file):
+    passengersList = []
+    passengers = np.genfromtxt(file, delimiter=(','), dtype=int)
+    for x, y, x1, y1, pace in passengers:
+        passenger = ((x, y), (x1, y1), pace)
+        passengersList.append(passenger)
+    return passengersList
+
+
 start_point, cc = route_cc(route)
 print((f"The bus route starts at {start_point} and\n"
        f"it's described by this chain code:\n{cc}"))
