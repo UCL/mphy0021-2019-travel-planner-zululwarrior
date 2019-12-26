@@ -18,6 +18,18 @@ passengers = {1: [(0, 2), (8, 1), 15],
               }
 
 
+class Passenger:
+    def __init__(self, start, end, speed):
+        self.start = start
+        self.end = end
+        self.speed = speed
+
+    def walk_time(self):
+        walking_time = math.sqrt(
+            (self.end[0] - self.start[0])**2 + (self.end[1] - self.start[1]**2)) * self.speed
+        return walking_time
+
+
 def timetable(route):
     '''
     Generates a timetable for a route as minutes from its first stop.
@@ -132,9 +144,9 @@ def route_cc(route):
 
 def read_passengers(file):
     passengersList = []
-    passengers = np.genfromtxt(file, delimiter=(','), dtype=int)
+    passengers = np.genfromtxt(file, delimiter=(','))
     for x, y, x1, y1, pace in passengers:
-        passenger = ((x, y), (x1, y1), pace)
+        passenger = ((int(x), int(y)), (int(x1), int(y1)), str(pace))
         passengersList.append(passenger)
     return passengersList
 
