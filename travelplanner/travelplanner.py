@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 route = [(2, 1, 'A'), (3, 1, ''), (4, 1, ''), (5, 1, ''),
          (6, 1, ''), (7, 1, 'B'), (7, 2, ''), (8, 2, ''),
@@ -28,6 +29,99 @@ class Passenger:
         walking_time = math.sqrt(
             (self.end[0] - self.start[0])**2 + (self.end[1] - self.start[1]**2)) * self.speed
         return walking_time
+
+
+class Route:
+    def __init__(self, file_name):
+        self.file_name = file_name
+
+        DIR = Path(__file__).parent
+        route_csv = np.genfromtxt(
+            DIR / file_name, delimiter=(','), dtype=(int, int, 'U10'), encoding=None)
+
+        route = [(int(x), int(y), stop.replace("'", ""))
+                 for x, y, stop in route_csv]
+        self.route = route
+
+    def plot_map(self):
+        route = self.route
+        max_x = max([n[0] for n in route]) + 5  # adds padding
+        max_y = max([n[1] for n in route]) + 5
+        grid = np.zeros((max_y, max_x))
+        for x, y, stop in route:
+            grid[y, x] = 1
+            if stop:
+                grid[y, x] += 1
+        fig, ax = plt.subplots(1, 1)
+        ax.pcolor(grid)
+        ax.invert_yaxis()
+        ax.set_aspect('equal', 'datalim')
+        plt.show()
+
+    def timetable(self):
+        route = self.route
+        time = 0
+        stops = {}
+        for step in route:
+            if step[2]:
+                stops[step[2]] = time
+            time += 10
+        return stops
+
+    def travel_time(self):
+        route = self.route
+        start = route[0][:2]
+        cc = []
+        freeman_cc2coord = {0: (1, 0),
+                            1: (1, -1),
+                            2: (0, -1),
+                            3: (-1, -1),
+                            4: (-1, 0),
+                            5: (-1, 1),
+                            6: (0, 1),
+                            7: (1, 1)}
+        freeman_coord2cc = {val: key for key, val in freeman_cc2coord.items()}
+        for b, a in zip(route[1:], route):
+            x_step = b[0] - a[0]
+            y_step = b[1] - a[1]
+            cc.append(str(freeman_coord2cc[(x_step, y_step)]))
+        return start, ''.join(cc)
+
+
+class Journey:
+    def __init__(self, route, passengers):
+        self.route = route
+        self.passengers = passengers
+
+    def passenger_trip(self, passenger):
+        stops = [value for value in self.route.route if value[2]]
+        # calculate closer stops
+        # to start
+        distances = [(math.sqrt((x - passenger.start[0])**2 +
+                                (y - passenger.start[1])**2), stop) for x, y, stop in stops]
+        closer_start = min(distances)
+        # to end
+        distances = [(math.sqrt((x - passenger.end[0])**2 +
+                                (y - passenger.end[1])**2), stop) for x, y, stop in stops]
+
+        closer_end = min(distances)
+        return (closer_start, closer_end)
+
+    def plot_bus_load(self):
+        stops = {step[2]: 0 for step in self.route.route if step[2]}
+        for passenger in self.passengers:
+            trip = self.passenger_trip(passenger)
+            stops[trip[0][1]] += 1
+            stops[trip[1][1]] -= 1
+        for i, stop in enumerate(stops):
+            if i > 0:
+                stops[stop] += stops[prev]
+            prev = stop
+        fig, ax = plt.subplots()
+        ax.step(range(len(stops)), list(stops.values()), where='post')
+        ax.set_xticks(range(len(stops)))
+        ax.set_xticklabels(list(stops.keys()))
+        plt.show()
 
 
 def timetable(route):
@@ -110,9 +204,9 @@ for passenger_id, passenger in passengers.items():
            f" walk {end[0]:3.2f} units to your destination."))
     print(f" Total time of travel: {total_time:03.2f} minutes")
 # Plots the route of the bus
-plot_map(route)
+# plot_map(route)
 # Plots the number of passenger on the bus
-plot_bus_load(route, passengers)
+##plot_bus_load(route, passengers)
 
 
 def route_cc(route):
@@ -143,12 +237,12 @@ def route_cc(route):
 
 
 def read_passengers(file):
-    passengersList = []
-    passengers = np.genfromtxt(file, delimiter=(','))
+    DIR = Path(__file__).parent
+    passengers_list = []
+    passengers = np.genfromtxt(DIR / file, delimiter=(','), dtype=int)
     for x, y, x1, y1, pace in passengers:
-        passenger = ((int(x), int(y)), (int(x1), int(y1)), str(pace))
-        passengersList.append(passenger)
-    return passengersList
+        passengers_list.append(((x, y), (x1, y1), pace))
+    return passengers_list
 
 
 start_point, cc = route_cc(route)
