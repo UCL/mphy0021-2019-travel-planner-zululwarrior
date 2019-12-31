@@ -32,7 +32,7 @@ class Passenger:
 
 
 class Route:
-    def __init__(self, file_name):
+    def __init__(self, file_name, speed=None):
         self.file_name = file_name
 
         DIR = Path(__file__).parent
@@ -42,6 +42,8 @@ class Route:
         route = [(int(x), int(y), stop.replace("'", ""))
                  for x, y, stop in route_csv]
         self.route = route
+        self.speed = speed if speed is not None else 10
+        self.generate_cc()
 
     def plot_map(self):
         route = self.route
@@ -65,7 +67,7 @@ class Route:
         for step in route:
             if step[2]:
                 stops[step[2]] = time
-            time += 10
+            time += self.speed
         return stops
 
     def generate_cc(self):
@@ -84,6 +86,9 @@ class Route:
         for b, a in zip(route[1:], route):
             x_step = b[0] - a[0]
             y_step = b[1] - a[1]
+            if freeman_coord2cc[(x_step, y_step)] not in (0, 2, 4, 6):
+                raise ValueError(
+                    "Invalid route, bus can only move horizontally or vertically")
             cc.append(str(freeman_coord2cc[(x_step, y_step)]))
         return start, ''.join(cc)
 
