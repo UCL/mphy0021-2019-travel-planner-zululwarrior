@@ -68,7 +68,7 @@ class Route:
             time += 10
         return stops
 
-    def travel_time(self):
+    def generate_cc(self):
         route = self.route
         start = route[0][:2]
         cc = []
@@ -95,16 +95,51 @@ class Journey:
 
     def passenger_trip(self, passenger):
         stops = [value for value in self.route.route if value[2]]
-        # calculate closer stops
+        # calculate closer stop
         # to start
-        distances = [(math.sqrt((x - passenger.start[0])**2 +
-                                (y - passenger.start[1])**2), stop) for x, y, stop in stops]
-        closer_start = min(distances)
+        closer_start = ((stops[0][0], stops[0][1]), stops[0][2])
+        min_distance = math.sqrt((stops[0][0] - passenger.start[0])**2 +
+                                 (stops[0][1] - passenger.start[1])**2)
+        for x, y, stop in stops:
+            distance = (math.sqrt((x - passenger.start[0])**2 +
+                                  (y - passenger.start[1])**2))
+            if (distance < min_distance):
+                closer_start = ((x, y), stop)
+                min_distance = distance
+            elif (distance == min_distance):
+                prev_dist = math.sqrt((passenger.end[0] - closer_start[0][0])
+                                      ** 2 + (passenger.end[1] - closer_start[0][1])**2)
+                next_dist = math.sqrt((passenger.end[0] - x) **
+                                      2 + (passenger.end[1] - y)**2)
+                if(prev_dist > next_dist):
+                    closer_start = ((x, y), stop)
+                    min_distance = distance
+                else:
+                    closer_start = closer_start
+        closer_start = (math.sqrt((passenger.start[0] - closer_start[0][0])
+                                  ** 2 + (passenger.start[1] - closer_start[0][1])**2), closer_start[1])
         # to end
-        distances = [(math.sqrt((x - passenger.end[0])**2 +
-                                (y - passenger.end[1])**2), stop) for x, y, stop in stops]
-
-        closer_end = min(distances)
+        closer_end = ((stops[0][0], stops[0][1]), stops[0][2])
+        min_distance = math.sqrt((stops[0][0] - passenger.end[0])**2 +
+                                 (stops[0][1] - passenger.end[1])**2)
+        for x, y, stop in stops:
+            distance = (math.sqrt((x - passenger.end[0])**2 +
+                                  (y - passenger.end[1])**2))
+            if (distance < min_distance):
+                closer_end = ((x, y), stop)
+                min_distance = distance
+            elif (distance == min_distance):
+                prev_dist = math.sqrt((passenger.start[0] - closer_end[0][0])
+                                      ** 2 + (passenger.start[1] - closer_end[0][1])**2)
+                next_dist = math.sqrt((passenger.start[0] - x) **
+                                      2 + (passenger.start[1] - y)**2)
+                if(prev_dist > next_dist):
+                    closer_end = ((x, y), stop)
+                    min_distance = distance
+                else:
+                    closer_end = closer_end
+        closer_end = (math.sqrt((passenger.end[0] - closer_end[0][0])
+                                ** 2 + (passenger.end[1] - closer_end[0][1])**2), closer_end[1])
         return (closer_start, closer_end)
 
     def plot_bus_load(self):
@@ -122,6 +157,35 @@ class Journey:
         ax.set_xticks(range(len(stops)))
         ax.set_xticklabels(list(stops.keys()))
         plt.show()
+
+    def travel_time(self, id):
+        passenger = self.passengers[id]
+        walk_distance_stops = self.passenger_trip(passenger)
+        bus_times = self.route.timetable()
+        bus_travel = bus_times[walk_distance_stops[1][1]] - \
+            bus_times[walk_distance_stops[0][1]]
+        walk_travel = walk_distance_stops[0][0] * passenger.speed + \
+            walk_distance_stops[1][0] * passenger.speed
+        distance = math.sqrt((passenger.end[0] - passenger.start[0])**2 +
+                             (passenger.end[1] - passenger.start[1])**2)
+        if((distance * passenger.speed) <= (bus_travel + walk_travel)):
+            bus_travel = 0
+            walk_travel = distance * passenger.speed
+        travel_dict = {"bus": bus_travel,
+                       "walk": walk_travel}
+        return travel_dict
+
+    def print_time_stats(self):
+        id = 0
+        total_bus = 0
+        total_walk = 0
+        for passenger in self.passengers:
+            travel_dict = self.travel_time(id)
+            total_bus = travel_dict["bus"] + total_bus
+            total_walk = travel_dict["walk"] + total_walk
+            id += 1
+        print("Average time on bus: ", total_bus/(id), " min")
+        print("Average walking time: ", total_walk/(id), " min")
 
 
 def timetable(route):
@@ -194,6 +258,7 @@ def plot_bus_load(route, passengers):
     plt.show()
 
 
+'''
 print(" Stops: minutes from start\n", timetable(route))
 for passenger_id, passenger in passengers.items():
     print(f"Trip for passenger: {passenger_id}")
@@ -203,10 +268,11 @@ for passenger_id, passenger in passengers.items():
            f" get on the bus and alite at stop {end[1]} and \n"
            f" walk {end[0]:3.2f} units to your destination."))
     print(f" Total time of travel: {total_time:03.2f} minutes")
+'''
 # Plots the route of the bus
 # plot_map(route)
 # Plots the number of passenger on the bus
-##plot_bus_load(route, passengers)
+# plot_bus_load(route, passengers)
 
 
 def route_cc(route):
@@ -215,7 +281,7 @@ def route_cc(route):
         3 2 1
         \ | /
     4 - C - 0
-        / | \ 
+        / | \
         5 6 7
     '''
     start = route[0][:2]
