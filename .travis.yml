@@ -6,6 +6,8 @@ python:
 install:
   - pip install numpy
   - pip install matplotlib
+  - pip install pytest pytest-cov
 
 script:
   - python ./travelplanner/travelplanner.py
+  - pytest --cov=./
