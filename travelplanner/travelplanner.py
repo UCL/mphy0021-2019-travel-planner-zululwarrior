@@ -81,6 +81,7 @@ class Route:
         ax.pcolor(grid)
         ax.invert_yaxis()
         ax.set_aspect('equal', 'datalim')
+        plt.savefig('map.png')
         plt.show()
 
     def timetable(self):
@@ -198,6 +199,7 @@ class Journey:
         ax.step(range(len(stops)), list(stops.values()), where='post')
         ax.set_xticks(range(len(stops)))
         ax.set_xticklabels(list(stops.keys()))
+        plt.savefig('load.png')
         plt.show()
 
     def travel_time(self, id):
