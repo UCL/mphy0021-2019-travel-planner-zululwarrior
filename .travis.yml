@@ -10,4 +10,4 @@ install:
 
 script:
   - python ./travelplanner/travelplanner.py
-  - pytest --cov=./
+  - pytest --doctest-modules --cov=./

@@ -5,6 +5,13 @@ from pathlib import Path
 
 
 class Passenger:
+    ''' Passenger of a trip
+        :Parameters:
+            start: The starting coordinates of the passenger
+            end: The ending coordinates of the passenger
+            speed: The speed at which the passenger walks (minutes per unit)
+    '''
+
     def __init__(self, start, end, speed):
         if not isinstance(speed, int):
             raise TypeError("Speed must be an int")
@@ -34,6 +41,13 @@ class Passenger:
 
 
 class Route:
+    ''' A route for the bus
+        :Parameters:
+            file_name: csv file name
+            speed: The speed at which the bus moves(minutes per unit). 
+                Set to 10 if not defined
+    '''
+
     def __init__(self, file_name, speed=None):
         if not isinstance(file_name, type(Path(__file__))) and not isinstance(file_name, str):
             raise TypeError("File name must be a string or a path")
@@ -103,6 +117,12 @@ class Route:
 
 
 class Journey:
+    ''' The journey of passengers in a particular route
+        :Parameters:
+            route: A route object
+            passengers: A list of passenger objects
+    '''
+
     def __init__(self, route, passengers):
         if not isinstance(route, Route):
             raise TypeError("1st argument must be of type route")
@@ -114,6 +134,8 @@ class Journey:
         self.passengers = passengers
 
     def passenger_trip(self, passenger):
+        if not isinstance(passenger, Passenger):
+            raise TypeError("1st argument must of of type passenger")
         stops = [value for value in self.route.route if value[2]]
         # calculate closer stop
         # to start
@@ -179,6 +201,10 @@ class Journey:
         plt.show()
 
     def travel_time(self, id):
+        if id >= len(self.passengers):
+            raise ValueError("This id does not exist")
+        elif id < 0:
+            raise ValueError("Id cannot be less than 0")
         passenger = self.passengers[id]
         walk_distance_stops = self.passenger_trip(passenger)
         bus_times = self.route.timetable()
@@ -209,11 +235,14 @@ class Journey:
 
 
 def read_passengers(file):
+    if not isinstance(file, type(Path(__file__))) and not isinstance(file, str):
+        raise TypeError("File name must be a string or a path")
     DIR = Path(__file__).parent
     passengers_list = []
     passengers = np.genfromtxt(DIR / file, delimiter=(','), dtype=int)
     for x, y, x1, y1, pace in passengers:
-        passengers_list.append(((x, y), (x1, y1), pace))
+        passengers_list.append(
+            ((int(x), int(y)), (int(x1), int(y1)), int(pace)))
     return passengers_list
 
 
