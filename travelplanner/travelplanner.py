@@ -187,10 +187,13 @@ class Journey:
 
     def plot_bus_load(self):
         stops = {step[2]: 0 for step in self.route.route if step[2]}
+        count = 0
         for passenger in self.passengers:
-            trip = self.passenger_trip(passenger)
-            stops[trip[0][1]] += 1
-            stops[trip[1][1]] -= 1
+            if self.travel_time(count)["bus"] > 0:
+                trip = self.passenger_trip(passenger)
+                stops[trip[0][1]] += 1
+                stops[trip[1][1]] -= 1
+            count += 1
         for i, stop in enumerate(stops):
             if i > 0:
                 stops[stop] += stops[prev]
