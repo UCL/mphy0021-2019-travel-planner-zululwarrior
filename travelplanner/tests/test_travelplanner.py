@@ -52,22 +52,24 @@ def test_constructor_input(write_file):
         r = Route(123)
 
     with pytest.raises(TypeError) as e:
-        r = Route(DIR/"route.csv", "12")
+        r = Route(DIR / "route.csv", "12")
 
     with pytest.raises(ValueError) as e:
-        r = Route(DIR/"route.csv", -10)
+        r = Route(DIR / "route.csv", -10)
 
     with pytest.raises(TypeError) as e:
         p = Passenger((1, 1), (1, 2), 5)
-        j = Journey(DIR/"route.csv", [p])
+        j = Journey(DIR / "route", [p])
 
     with pytest.raises(TypeError) as e:
         p = Passenger((1, 1), (1, 2), 5)
-        j = Journey(DIR/"route.csv", p)
+        r = Route(DIR / "route.csv")
+        j = Journey(r, p)
 
     with pytest.raises(TypeError) as e:
         p = Passenger((1, 1), (1, 2), 5)
-        j = Journey(DIR/"route.csv", ["passenger", "passenger1"])
+        r = Route(DIR / "route.csv")
+        j = Journey(r, ["passenger", "passenger1"])
 
 
 def test_walk_time():
