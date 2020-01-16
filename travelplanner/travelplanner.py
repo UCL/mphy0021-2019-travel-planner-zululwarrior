@@ -36,26 +36,27 @@ class Passenger:
         80.62257748298549
         '''
         walking_time = math.sqrt(
-            (self.end[0] - self.start[0])**2 + (self.end[1] - self.start[1])**2) * self.speed
+            (self.end[0] - self.start[0])**2 +
+            (self.end[1] - self.start[1])**2) * self.speed
         return walking_time
 
 
 class Route:
     ''' A route for the bus
         :Parameters:
-            file_name: csv file name
-            speed: The speed at which the bus moves(minutes per unit). 
-                Set to 10 if not defined
+        file_name: csv file name
+        speed: The speed at which the bus moves(minutes per unit).
+        Set to 10 if not defined
     '''
 
     def __init__(self, file_name, speed=None):
-        if not isinstance(file_name, type(Path(__file__))) and not isinstance(file_name, str):
+        if not isinstance(file_name, type(Path(__file__))) \
+                and not isinstance(file_name, str):
             raise TypeError("File name must be a string or a path")
 
         self.file_name = file_name
-        DIR = Path(__file__).parent
-        route_csv = np.genfromtxt(
-            DIR / file_name, delimiter=(','), dtype=(int, int, 'U10'), encoding=None)
+        route_csv = np.genfromtxt(file_name, delimiter=(','),
+                                  dtype=(int, int, 'U10'), encoding=None)
 
         route = [(int(x), int(y), stop.replace("'", ""))
                  for x, y, stop in route_csv]
@@ -65,7 +66,8 @@ class Route:
         if not isinstance(self.speed, int):
             raise TypeError("Speed must be an int")
         if self.speed <= 0:
-            raise ValueError("Speed cannot be equal or less than 0")
+            raise ValueError(
+                "Speed cannot be equal or less than 0")
         self.generate_cc()
 
     def plot_map(self):
@@ -112,7 +114,7 @@ class Route:
             y_step = b[1] - a[1]
             if freeman_coord2cc[(x_step, y_step)] not in (0, 2, 4, 6):
                 raise ValueError(
-                    "Invalid route, bus can only move horizontally or vertically")
+                    "Diagonal moves are not allowed")
             cc.append(str(freeman_coord2cc[(x_step, y_step)]))
         return start, ''.join(cc)
 
@@ -129,7 +131,8 @@ class Journey:
             raise TypeError("1st argument must be of type route")
         if not isinstance(passengers, list):
             raise TypeError("2nd argument must be a list of type passenger")
-        if not all(isinstance(passenger, Passenger) for passenger in passengers):
+        if not all(isinstance(passenger, Passenger)
+                   for passenger in passengers):
             raise TypeError("2nd argument must of a list of type passenger")
         self.route = route
         self.passengers = passengers
@@ -150,8 +153,9 @@ class Journey:
                 closer_start = ((x, y), stop)
                 min_distance = distance
             elif (distance == min_distance):
-                prev_dist = math.sqrt((passenger.end[0] - closer_start[0][0])
-                                      ** 2 + (passenger.end[1] - closer_start[0][1])**2)
+                prev_dist = math.sqrt(
+                    (passenger.end[0] - closer_start[0][0])
+                    ** 2 + (passenger.end[1] - closer_start[0][1])**2)
                 next_dist = math.sqrt((passenger.end[0] - x) **
                                       2 + (passenger.end[1] - y)**2)
                 if(prev_dist > next_dist):
@@ -159,8 +163,10 @@ class Journey:
                     min_distance = distance
                 else:
                     closer_start = closer_start
-        closer_start = (math.sqrt((passenger.start[0] - closer_start[0][0])
-                                  ** 2 + (passenger.start[1] - closer_start[0][1])**2), closer_start[1])
+        closer_start = (math.sqrt(
+            (passenger.start[0] - closer_start[0][0])
+            ** 2 + (passenger.start[1] -
+                    closer_start[0][1])**2), closer_start[1])
         # to end
         closer_end = ((stops[0][0], stops[0][1]), stops[0][2])
         min_distance = math.sqrt((stops[0][0] - passenger.end[0])**2 +
@@ -172,8 +178,9 @@ class Journey:
                 closer_end = ((x, y), stop)
                 min_distance = distance
             elif (distance == min_distance):
-                prev_dist = math.sqrt((passenger.start[0] - closer_end[0][0])
-                                      ** 2 + (passenger.start[1] - closer_end[0][1])**2)
+                prev_dist = math.sqrt(
+                    (passenger.start[0] - closer_end[0][0])
+                    ** 2 + (passenger.start[1] - closer_end[0][1])**2)
                 next_dist = math.sqrt((passenger.start[0] - x) **
                                       2 + (passenger.start[1] - y)**2)
                 if(prev_dist > next_dist):
@@ -181,8 +188,10 @@ class Journey:
                     min_distance = distance
                 else:
                     closer_end = closer_end
-        closer_end = (math.sqrt((passenger.end[0] - closer_end[0][0])
-                                ** 2 + (passenger.end[1] - closer_end[0][1])**2), closer_end[1])
+        closer_end = (math.sqrt(
+            (passenger.end[0] - closer_end[0][0])
+            ** 2 + (passenger.end[1] -
+                    closer_end[0][1])**2), closer_end[1])
         return (closer_start, closer_end)
 
     def plot_bus_load(self):
@@ -219,7 +228,8 @@ class Journey:
             walk_distance_stops[1][0] * passenger.speed
         distance = math.sqrt((passenger.end[0] - passenger.start[0])**2 +
                              (passenger.end[1] - passenger.start[1])**2)
-        if((distance * passenger.speed) <= (bus_travel + walk_travel) or bus_travel < 0):
+        if((distance * passenger.speed) <=
+           (bus_travel + walk_travel) or bus_travel < 0):
             bus_travel = 0
             walk_travel = distance * passenger.speed
         travel_dict = {"bus": bus_travel,
@@ -240,11 +250,11 @@ class Journey:
 
 
 def read_passengers(file):
-    if not isinstance(file, type(Path(__file__))) and not isinstance(file, str):
+    if not isinstance(file, type(Path(__file__)))\
+            and not isinstance(file, str):
         raise TypeError("File name must be a string or a path")
-    DIR = Path(__file__).parent
     passengers_list = []
-    passengers = np.genfromtxt(DIR / file, delimiter=(','), dtype=int)
+    passengers = np.genfromtxt(file, delimiter=(','), dtype=int)
     for x, y, x1, y1, pace in passengers:
         passengers_list.append(
             ((int(x), int(y)), (int(x1), int(y1)), int(pace)))

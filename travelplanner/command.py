@@ -5,7 +5,8 @@ from .travelplanner import Passenger, Route, Journey, read_passengers
 
 def process():
     parser = ArgumentParser(
-        description="Calculates the path the passenger should take in a given bus route.")
+        description="Calculates the path the \
+        passenger should take in a given bus route.")
     parser.add_argument("routefile", default="route.csv",
                         help="The input CSV file with a bus route")
     parser.add_argument("passfile", default="passengers.csv",
@@ -13,7 +14,9 @@ def process():
     parser.add_argument(
         "--speed", help="The speed of the bus in the route", type=int)
     parser.add_argument(
-        "--saveplots", action="store_true", help="Displays and saves the map of the route and load of the bus")
+        "--saveplots", action="store_true",
+        help="Displays and saves the map \
+            of the route and load of the bus")
 
     arguments = parser.parse_args()
     passengers = [
@@ -34,10 +37,12 @@ def process():
         print(f"Trip for passenger: {count}")
         print(f" {journey.travel_time(count)}")
         if journey.travel_time(count)["bus"] > 0:
-            closerStart, closerEnd = journey.passenger_trip(passenger)
+            closerStart, closerEnd = \
+                journey.passenger_trip(passenger)
             timeDict = journey.travel_time(count)
             print(
-                f" Walk {closerStart[0]:3.2f} units to stop {closerStart[1]}, \n"
+                f" Walk {closerStart[0]:3.2f} units \
+                    to stop {closerStart[1]}, \n"
                 f" get on the bus and alite at stop {closerEnd[1]} and \n"
                 f" walk {closerEnd[0]:3.2f} units to your destination.")
             print(
