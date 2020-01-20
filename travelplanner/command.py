@@ -46,7 +46,8 @@ def process():
                 f" get on the bus and alite at stop {closerEnd[1]} and \n"
                 f" walk {closerEnd[0]:3.2f} units to your destination.")
             print(
-                f" Total time of travel: {timeDict['bus'] + timeDict['walk']:3.2f}")
+                f" Total time of travel: \n"
+                f"{timeDict['bus'] + timeDict['walk']:3.2f}")
         count += 1
 
     if arguments.saveplots:
